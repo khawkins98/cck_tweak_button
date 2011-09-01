@@ -1,0 +1,7 @@
+name = CCK Tweak Button
+description = Make the Add Another Item text more specific and helpful.
+package = CCK
+
+version = "6.x-0.1-dev"
+core = 6.x
+project = "cck_tweak_button"

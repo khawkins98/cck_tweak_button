@@ -1,0 +1,96 @@
+<?php
+// $Id$
+/**
+ * @file
+ * A module tp make the Add Another Item text more specific and helpful.
+ * Code from http://drupal.org/node/536842
+ */
+
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function cck_tweak_button_form_alter(&$form, &$form_state, $form_id) {
+  // Alter the node edit form.
+  // Note that $form['type']['#value'] contains the node type, so you may want
+  // to filter by that as well.
+  if (isset($form['#node']) && isset($form['type']['#value']) && $form_id == $form['type']['#value'] .'_node_form') {
+    if (!isset($form['#after_build'])) {
+      $form['#after_build'] = array();
+    }
+    $form['#after_build'][] = '_cck_tweak_button_node_form_after_build';
+  }
+}
+
+/**
+ * After build callback for our node form.
+ */
+function _cck_tweak_button_node_form_after_build($form, &$form_state) {
+  _cck_tweak_button_node_form_after_build_recursive($form);
+  return $form;
+}
+
+/**
+ * Scan the node form recursively in search for "Add more items" buttons.
+ */
+function _cck_tweak_button_node_form_after_build_recursive(&$elements) {
+  
+  // Want to use custom text in your button? 
+  // Set that below with the key item on the left set to the name of the field
+  $replacements = array(
+    'Documents' => 'Add another document',
+    'External document' => 'Link more external documents',    
+  );    
+
+  foreach (element_children($elements) as $key) {
+    if (isset($elements[$key]) && $elements[$key]) {
+      if (isset($elements[$key][$key .'_add_more'])) {
+
+        // $key is the field name or the multigroup name.
+        // The attribute '#type_name' contains the node type.
+        // If this is a single field, then the attribute '#field_name' contains the name of the field.
+        // If this is a multigroup, then the attribute '#group_name' contains the name of the group.
+        // The attribute '#value' contains the button label. You can change this to suit your needs.
+
+        // What follows is just an example where we're using the label of
+        // the field or group to alter the button.
+
+        $type_name = $elements[$key][$key .'_add_more']['#type_name'];
+
+        if (isset($elements[$key][$key .'_add_more']['#field_name'])) {
+
+          // Obtain information about the field.
+          $field = content_fields($key, $type_name);
+
+          // Change the label of the button.
+          if (array_key_exists($field['widget']['label'],$replacements)) { 
+            $match = $field['widget']['label'];
+            // If we've set a specific override use that.
+            $elements[$key][$key .'_add_more']['#value'] = t($replacements[$match]); 
+          } else {
+            // Else just go on autopilot.
+            $elements[$key][$key .'_add_more']['#value'] = t('Add another @name', array('@name' => t($field['widget']['label'])));
+          }
+
+        }
+        elseif (isset($elements[$key][$key .'_add_more']['#group_name'])) {
+
+          // Obtain information about the multigroup.
+          $groups = fieldgroup_groups($type_name);
+          $group = $groups[$key];
+
+          // Change the label of the button.
+          $elements[$key][$key .'_add_more']['#value'] = t('Add another item to @name', array('@name' => t($group['label'])));
+
+        }
+
+      }
+      else {
+        // Recurse through all children elements.
+        _cck_tweak_button_node_form_after_build_recursive($elements[$key]);
+      }
+    }
+  }
+}
+
+?>

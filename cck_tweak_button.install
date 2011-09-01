@@ -1,0 +1,18 @@
+<?php
+
+/**
+ * Implementation of hook_install().
+ */
+function comment_cck_install() {
+  drupal_install_schema('cck_tweak_button');
+}
+
+/**
+ * Implementation of hook_uninstall()
+ */
+function test_module_uninstall() {
+  drupal_uninstall_schema('cck_tweak_button');
+}
+
+
+?>
